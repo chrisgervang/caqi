@@ -1,0 +1,7 @@
+-c main.txt
+docker-compose
+notebook
+pip-tools
+pytest
+pytest-cov
+pytest-mock
