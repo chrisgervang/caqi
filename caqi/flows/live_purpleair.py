@@ -48,7 +48,7 @@ def main():
         interval=timedelta(hours=1)
     )
 
-    with Flow("manual-raw-purpleair-b", schedule=schedule) as flow:
+    with Flow("live-purpleair", schedule=schedule) as flow:
         offline = Parameter("offline", default=False)
         purpleair_client = create_purpleair_client(offline)
         all_sensors_raw = extract_live_purpleair(purpleair_client)

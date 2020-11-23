@@ -21,7 +21,7 @@ def extract_online_live_purpleair():
     return all_sensors
 
 def main():
-    with Flow("manual-raw-purpleair-a") as flow:
+    with Flow("manual-live-purpleair-control-flow") as flow:
         offline = Parameter("offline", default=True)
         all_sensors_online = extract_online_live_purpleair()
         all_sensors_offline = extract_offline_live_purpleair()
@@ -32,7 +32,7 @@ def main():
     flow.register(project_name="caqi-flows")
 
     # Immediately executes without agents
-    flow.run()
+    # flow.run()
 
 if __name__ == "__main__":
     main()
