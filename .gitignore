@@ -126,3 +126,6 @@ dmypy.json
 
 # Homebrew
 Brewfile.lock.json
+
+# Data Storage
+data_bucket/
