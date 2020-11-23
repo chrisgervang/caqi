@@ -1,11 +1,10 @@
 
+from caqi.clients.file_system_client import FileSystemClient
+from caqi.clients.http_client import HttpClient
 import logging 
 from time import sleep
-from typing import Dict
-import requests
-from requests import exceptions as requests_exceptions
-from dataclasses import dataclass
-from prefect.utilities.exceptions import PrefectError
+from typing import Any, Dict
+from dataclasses import dataclass, field
 
 '''
 http://www.purpleair.com/data.json
@@ -56,81 +55,56 @@ Analyse to create CAQI:
 - 
 
 '''
-
-def _retryable_error(exception):
-    return (
-        isinstance(
-            exception,
-            (requests_exceptions.ConnectionError, requests_exceptions.Timeout),
-        )
-        or exception.response is not None
-        and exception.response.status_code >= 500
-    )
-
 @dataclass
 class PurpleAirClient:
-    retry_limit: int = 3
-    retry_delay_secs: float = 5.0
-    timeout_secs: int = 180
+    def get_live_matrix(self, show: int = None) -> Dict[str, Any]:
+        raise NotImplementedError("Function not implemented!")
+    def get_live_records(self, show: int = None) -> Dict[str, Any]:
+        raise NotImplementedError("Function not implemented!")
 
-    def _get_call(self, url: str, params: Dict[str, str] = None) -> Dict:
-        attempt_num = 1
-        while True:
-            try:
-                response = requests.get(
-                    url,
-                    params=params,
-                    timeout=self.timeout_secs,
-                )
-                response.raise_for_status()
-                return response.json()
-            except requests_exceptions.RequestException as e:
-                if not _retryable_error(e):
-                    # In this case, the user probably made a mistake.
-                    # Don't retry.
-                    raise PrefectError(
-                        "Response: {0}, Status Code: {1}".format(
-                            e.response.content, e.response.status_code
-                        )
-                    ) from e
+@dataclass
+class PurpleAirHttpClient(PurpleAirClient):
+    http_client: HttpClient = field(default_factory=HttpClient)
 
-                self._log_request_error(attempt_num, e)
-
-            if attempt_num == self.retry_limit:
-                raise PrefectError(
-                    (
-                        "API requests to PurpleAir failed {} times. " + "Giving up."
-                    ).format(self.retry_limit)
-                )
-
-            attempt_num += 1
-            sleep(self.retry_delay_secs)
-    
-    def _log_request_error(self, attempt_num, error):
-        logging.error(
-            "Attempt %s API Request to Databricks failed with reason: %s",
-            attempt_num,
-            error,
-        )
-
-    def get_matrix(self):
-        return self._get_call(url="http://www.purpleair.com/data.json")
-    
-    def get_verbose(self, show: int = None):
-        '''
-        show: get a single purpleair sensor index id. If None, get all.
-        '''
-        url = "http://www.purpleair.com/json"
+    def get_live_matrix(self, show: int = None) -> Dict[str, Any]:
         params = {}
         if show is not None:
             params['show'] = str(show)
-        return self._get_call(url=url, params=params)
+        return self.http_client.get_call(url="http://www.purpleair.com/data.json", params=params)
+    
+    def get_live_records(self, show: int = None) -> Dict[str, Any]:
+        '''
+        show: get a single purpleair sensor index id. If None, get all.
+        '''
+        params = {}
+        if show is not None:
+            params['show'] = str(show)
+        return self.http_client.get_call(url="http://www.purpleair.com/json", params=params)
+
+@dataclass
+class PurpleAirFileSystemClient(PurpleAirClient):
+    file_system_client: FileSystemClient = field(default_factory=FileSystemClient)
+
+    def get_live_matrix(self, show: int = None) -> Dict[str, Any]:
+        if show is not None:
+            return self.file_system_client.load_json('sample/data.json')
+        return self.file_system_client.load_json('sample/data.json')
+    
+    def get_live_records(self, show: int = None) -> Dict[str, Any]:
+        '''
+        show: get a single purpleair sensor index id. If None, get all.
+        '''
+        if show is not None:
+            return self.file_system_client.load_json('sample/json.json')
+        return self.file_system_client.load_json('sample/json.json')
+
+    
 
 if __name__ == "__main__":
-    client = PurpleAirClient()
+    client = PurpleAirHttpClient()
     
-    print(client.get_matrix()['version'])
+    print(client.get_live_matrix()['version'])
 
-    print(client.get_verbose(show=14633))
+    print(client.get_live_records(show=14633))
 
-    print(client.get_verbose()['mapVersion'])
+    print(client.get_live_records()['mapVersion'])
