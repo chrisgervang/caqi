@@ -38,14 +38,14 @@ def load_all_sensors_raw_json(all_sensors_raw, blob_client):
 
 @task
 def load_all_sensors_processed(all_sensors_processed, blob_client):
-    all_sensors_processed_df = all_sensors_processed.get_raw_df()
     all_sensors_processed_df = all_sensors_processed.get_processed_df()
     blob_client.save_csv(all_sensors_processed_df, "processed")
 
 def main():
 
     schedule = IntervalSchedule(
-        start_date=datetime.utcnow() + timedelta(seconds=1), 
+        start_date=datetime(2020, 11, 23),
+        # start_date=datetime.utcnow() + timedelta(seconds=1), 
         interval=timedelta(hours=1)
     )
 
@@ -62,7 +62,7 @@ def main():
     flow.register(project_name="caqi-flows")
 
     # Immediately executes without agents
-    # flow.run()
+    # flow.run(parameters={'offline': True})
 
 if __name__ == "__main__":
     main()
