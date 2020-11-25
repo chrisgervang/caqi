@@ -7,40 +7,34 @@ import numpy as np
 
 @dataclass
 class AllSensorsProcessedDao:
-    raw_df: pd.DataFrame = None
+    processed_df: pd.DataFrame = None
     all_sensors_raw: InitVar[AllSensorsRawDao] = None
-
-    # kept_columns: List[str] = [
-    #     "ID","pm","pm_cf_1","pm_atm","age","pm_0","pm_1","pm_2","pm_3","pm_4","pm_5","pm_6","conf","pm1","pm_10","p1","p2","p3","p4","p5","p6","Humidity","Temperature","Pressure","Elevation","Type","Label","Lat","Lon","Icon","isOwner","Flags","Voc","Ozone1","Adc","CH"
-    # ]
 
     def __post_init__(self, all_sensors_raw: AllSensorsRawDao):
         '''
         Pursue self-hydration with provided raw data dao or skip if processed fields provided.
         '''
-        if all_sensors_raw is not None and self.raw_df is None:
-            self.raw_df = pd.DataFrame(all_sensors_raw.get_records())
+        if all_sensors_raw is not None and self.processed_df is None:
+            processed_df = pd.DataFrame(all_sensors_raw.get_records())
+            processed_df = AllSensorsProcessedDao.rename_columns(processed_df)
+            processed_df = AllSensorsProcessedDao.drop_columns(processed_df)
+            processed_df = AllSensorsProcessedDao.convert_types(processed_df)
+            processed_df = AllSensorsProcessedDao.infer_rows(processed_df)
+            processed_df = AllSensorsProcessedDao.drop_bad_rows(processed_df)
+            processed_df = AllSensorsProcessedDao.impute_channel_column(processed_df)
+            processed_df = AllSensorsProcessedDao.impute_h3_9_column(processed_df)
+            processed_df = AllSensorsProcessedDao.impute_aqi_column(processed_df)
+            processed_df = AllSensorsProcessedDao.final_drop_columns(processed_df)
+            self.processed_df = processed_df
+            
+            print(processed_df)
+            print(processed_df.info())
 
-        if self.raw_df is None:
-            raise TypeError(f"Required field is None: 'raw_df'")
+        if self.processed_df is None:
+            raise TypeError(f"Required field is None: 'processed_df'")
 
-    
-    def get_raw_df(self) -> pd.DataFrame:
-        return self.raw_df
-
-
-if __name__ == "__main__":
-    from caqi.clients.purpleair_client import PurpleAirHttpClient, PurpleAirFileSystemClient
-    # client = PurpleAirHttpClient()
-    client = PurpleAirFileSystemClient()
-    raw_dao = AllSensorsRawDao(purpleair_client=client)
-    # print(raw_dao.get_records()[0])
-
-    processed_dao = AllSensorsProcessedDao(all_sensors_raw=raw_dao)
-
-    raw_df = processed_dao.get_raw_df()
-    processed_df = raw_df.copy()
-    # print(processed_df.info())
+    def get_processed_df(self) -> pd.DataFrame:
+        return self.processed_df
 
     '''
     Transforms:
@@ -52,7 +46,7 @@ if __name__ == "__main__":
     5. Drop Bad Rows
     6. Impute New Columns
     '''
-
+    @staticmethod
     def rename_columns(processed_df: pd.DataFrame) -> pd.DataFrame:
         # 1. Rename Columns
         rename_columns = {
@@ -76,7 +70,8 @@ if __name__ == "__main__":
         }
         processed_df: pd.DataFrame = processed_df.rename(columns=rename_columns)
         return processed_df
-
+    
+    @staticmethod
     def drop_columns(processed_df: pd.DataFrame) -> pd.DataFrame:
         # 2. Only Keep Used Columns
         keep_columns = [
@@ -88,7 +83,8 @@ if __name__ == "__main__":
             'measurement_flagged', 'sensor_downgraded', 'age_mins'
         ]
         return processed_df.filter(items=keep_columns, axis='columns')
-
+    
+    @staticmethod
     def convert_types(processed_df: pd.DataFrame) -> pd.DataFrame:
         # 3. Convert Types    
         processed_df['measurement_flagged'] = processed_df['measurement_flagged'].replace(to_replace={ np.nan: False, 0: False, 1: True})
@@ -106,7 +102,8 @@ if __name__ == "__main__":
         }
         processed_df = processed_df.astype(column_dtypes)
         return processed_df
-
+    
+    @staticmethod
     def infer_rows(processed_df: pd.DataFrame) -> pd.DataFrame:
         '''
         4. Infer Values
@@ -129,7 +126,8 @@ if __name__ == "__main__":
             .fillna('unknown') \
             .astype('category')
         return processed_df
-
+    
+    @staticmethod
     def drop_bad_rows(processed_df: pd.DataFrame) -> pd.DataFrame:
         '''
         5. Drop Bad Rows
@@ -174,6 +172,7 @@ if __name__ == "__main__":
     aqi: int based on pm2_5_ug_m3
     TODO?: pm2_5_type: Category[CF=1 | ATM] (if indoor, CF=1 else ATM)
     '''
+    @staticmethod
     def impute_channel_column(processed_df: pd.DataFrame) -> pd.DataFrame:
         ## all A is NaN
         processed_df['channel'] = processed_df['purpleair_parent_id'].replace({pd.NA: 'A'})
@@ -182,7 +181,8 @@ if __name__ == "__main__":
         channel[channel != 'A'] = 'B'
         processed_df['channel'] = channel.astype('category')
         return processed_df
-
+    
+    @staticmethod
     def impute_h3_9_column(processed_df: pd.DataFrame) -> pd.DataFrame:
         # print(processed_df[processed_df['lat'].isna()])
         lat = processed_df['lat'].to_numpy()
@@ -191,7 +191,8 @@ if __name__ == "__main__":
         h3_9 = geo_to_h3(lat, lng, 9)
         processed_df['h3_9'] = h3_9
         return processed_df
-    
+
+    @staticmethod
     def impute_aqi_column(processed_df: pd.DataFrame) -> pd.DataFrame:
         def calc_aqi(Cp, Ih, Il, BPh, BPl):
             a = (Ih - Il)
@@ -230,7 +231,7 @@ if __name__ == "__main__":
         processed_df['aqi'] = processed_df['pm2_5_ug_m3'].map(aqi_from_pm)
         return processed_df
 
- 
+    @staticmethod
     def final_drop_columns(processed_df: pd.DataFrame) -> pd.DataFrame:
         '''
         7. Final Drop
@@ -241,18 +242,17 @@ if __name__ == "__main__":
         '''
         return processed_df.drop(columns=['measurement_flagged', 'sensor_downgraded'])
 
-    processed_df = rename_columns(processed_df)
-    processed_df = drop_columns(processed_df)
-    processed_df = convert_types(processed_df)
-    processed_df = infer_rows(processed_df)
-    processed_df = drop_bad_rows(processed_df)
-    processed_df = impute_channel_column(processed_df)
-    processed_df = impute_h3_9_column(processed_df)
-    processed_df = impute_aqi_column(processed_df)
-    processed_df = final_drop_columns(processed_df)
+if __name__ == "__main__":
+    from caqi.clients.purpleair_client import PurpleAirHttpClient, PurpleAirFileSystemClient
+    # client = PurpleAirHttpClient()
+    client = PurpleAirFileSystemClient()
+    raw_dao = AllSensorsRawDao(purpleair_client=client)
+    # print(raw_dao.get_records()[0])
 
-    print(processed_df)
-    print(processed_df.info())
+    processed_dao = AllSensorsProcessedDao(all_sensors_raw=raw_dao)
+
+    raw_df = processed_dao.get_raw_df()
+    
 
 '''
 "pm","pm_cf_1","pm_atm"

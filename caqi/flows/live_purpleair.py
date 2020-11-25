@@ -39,6 +39,7 @@ def load_all_sensors_raw_json(all_sensors_raw, blob_client):
 @task
 def load_all_sensors_processed(all_sensors_processed, blob_client):
     all_sensors_processed_df = all_sensors_processed.get_raw_df()
+    all_sensors_processed_df = all_sensors_processed.get_processed_df()
     blob_client.save_csv(all_sensors_processed_df, "processed")
 
 def main():
