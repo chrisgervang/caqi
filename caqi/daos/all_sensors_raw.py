@@ -42,4 +42,4 @@ if __name__ == "__main__":
     # client = PurpleAirHttpClient()
     client = PurpleAirFileSystemClient()
     dao = AllSensorsRawDao(purpleair_client=client)
-    print(dao.get_df())
+    print(dao.get_version())
