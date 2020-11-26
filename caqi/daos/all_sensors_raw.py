@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict
 from caqi.clients.purpleair_client import PurpleAirClient
 from dataclasses import InitVar, dataclass, field
@@ -5,37 +6,28 @@ import pandas as pd
 
 @dataclass
 class AllSensorsRawDao:
-    json: Dict[str, Any] = None
-    df: pd.DataFrame = None
-    purpleair_client: InitVar[PurpleAirClient] = None
+    json_: Dict[str, Any]
+    dt: datetime
+    
+    @classmethod
+    def of_live(cls, purpleair_client: PurpleAirClient):
+        json_ = purpleair_client.get_live_records()
+        dt = datetime.utcnow()
+        return cls(json_=json_, dt=dt)
 
-    def __post_init__(self, purpleair_client: PurpleAirClient):
-        '''
-        Pursue self-hydration with provided clients or skip if fields provided.
-        '''
-        if purpleair_client is not None and self.json is None:
-            self.json = purpleair_client.get_live_records()
-        
-        # if self.df is None and self.json is not None:
-        #     self.df = pd.DataFrame(self.json['results'])
-        # if self.df is None or self.json is None:
-        #     missing_fields = []
-        #     if self.df is None:
-        #         missing_fields.append('df')
-        #     if self.json is None:
-        #         missing_fields.append('json')
-        #     raise TypeError(f"Required field(s) are None: {missing_fields}")
-        if self.json is None:
-            raise TypeError(f"Required field is None: 'json'")
+    @classmethod
+    def of_archive(cls, dt: datetime, purpleair_client: PurpleAirClient):
+        json_ = purpleair_client.get_archived_records(dt)
+        return cls(json_=json_, dt=dt)
 
     def get_version(self):
-        return {'map_version': self.json['mapVersion'], 'base_version': self.json['baseVersion']}
+        return {'map_version': self.json_['mapVersion'], 'base_version': self.json_['baseVersion']}
 
     def get_records(self):
-        return self.json['results']
+        return self.json_['results']
     
     def get_json(self):
-        return self.json
+        return self.json_
 
 if __name__ == "__main__":
     from caqi.clients.purpleair_client import PurpleAirHttpClient, PurpleAirFileSystemClient

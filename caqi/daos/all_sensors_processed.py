@@ -8,30 +8,25 @@ import numpy as np
 @dataclass
 class AllSensorsProcessedDao:
     processed_df: pd.DataFrame = None
-    all_sensors_raw: InitVar[AllSensorsRawDao] = None
+    dt: datetime = None
+    
+    @classmethod
+    def of_raw_dao(cls, all_sensors_raw: AllSensorsRawDao):
+        processed_df = pd.DataFrame(all_sensors_raw.get_records())
+        processed_df = AllSensorsProcessedDao.rename_columns(processed_df)
+        processed_df = AllSensorsProcessedDao.drop_columns(processed_df)
+        processed_df = AllSensorsProcessedDao.convert_types(processed_df)
+        processed_df = AllSensorsProcessedDao.infer_rows(processed_df)
+        processed_df = AllSensorsProcessedDao.drop_bad_rows(processed_df)
+        processed_df = AllSensorsProcessedDao.impute_channel_column(processed_df)
+        processed_df = AllSensorsProcessedDao.impute_h3_9_column(processed_df)
+        processed_df = AllSensorsProcessedDao.impute_aqi_column(processed_df)
+        processed_df = AllSensorsProcessedDao.final_drop_columns(processed_df)
+        
+        # print(processed_df)
+        # print(processed_df.info())
+        return cls(processed_df=processed_df, dt=all_sensors_raw.dt)
 
-    def __post_init__(self, all_sensors_raw: AllSensorsRawDao):
-        '''
-        Pursue self-hydration with provided raw data dao or skip if processed fields provided.
-        '''
-        if all_sensors_raw is not None and self.processed_df is None:
-            processed_df = pd.DataFrame(all_sensors_raw.get_records())
-            processed_df = AllSensorsProcessedDao.rename_columns(processed_df)
-            processed_df = AllSensorsProcessedDao.drop_columns(processed_df)
-            processed_df = AllSensorsProcessedDao.convert_types(processed_df)
-            processed_df = AllSensorsProcessedDao.infer_rows(processed_df)
-            processed_df = AllSensorsProcessedDao.drop_bad_rows(processed_df)
-            processed_df = AllSensorsProcessedDao.impute_channel_column(processed_df)
-            processed_df = AllSensorsProcessedDao.impute_h3_9_column(processed_df)
-            processed_df = AllSensorsProcessedDao.impute_aqi_column(processed_df)
-            processed_df = AllSensorsProcessedDao.final_drop_columns(processed_df)
-            self.processed_df = processed_df
-            
-            print(processed_df)
-            print(processed_df.info())
-
-        if self.processed_df is None:
-            raise TypeError(f"Required field is None: 'processed_df'")
 
     def get_processed_df(self) -> pd.DataFrame:
         return self.processed_df

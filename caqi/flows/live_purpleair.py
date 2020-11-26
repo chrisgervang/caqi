@@ -1,3 +1,4 @@
+from caqi.tasks.all_sensors import create_hour_blob_client, extract_live_purpleair, load_all_sensors_processed, load_all_sensors_raw_json, transform_all_sensors_raw
 from datetime import datetime, timedelta
 import prefect
 from prefect.schedules import IntervalSchedule
@@ -26,7 +27,6 @@ def main():
         purpleair_client = create_purpleair_client(offline)
         all_sensors_raw = extract_live_purpleair(purpleair_client)
         all_sensors_processed = transform_all_sensors_raw(all_sensors_raw)
-        blob_client = create_hour_blob_client()
         blob_client = create_hour_blob_client(environment)
         load_all_sensors_raw_json(all_sensors_raw, blob_client)
         load_all_sensors_processed(all_sensors_processed, blob_client)
