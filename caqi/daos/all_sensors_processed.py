@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-from typing import List
+from datetime import datetime
 from caqi.daos.all_sensors_raw import AllSensorsRawDao
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 import pandas as pd
 import numpy as np
 
@@ -84,18 +83,25 @@ class AllSensorsProcessedDao:
         # 3. Convert Types    
         processed_df['measurement_flagged'] = processed_df['measurement_flagged'].replace(to_replace={ np.nan: False, 0: False, 1: True})
         processed_df['sensor_downgraded'] = processed_df['sensor_downgraded'].replace(to_replace={ np.nan: False, 'true': True })
+        
+        ## Some sensors are missing API keys. They are "object" type, so first cast to float32, then to Int32Dtype. 
+        processed_df = processed_df.astype({'thingspeak_primary_id': np.float32, 'thingspeak_secondary_id': np.float32})
+
         column_dtypes = {
             'purpleair_id': np.int32,
-            'purpleair_parent_id': pd.Int64Dtype(),
+            'purpleair_parent_id': pd.Int32Dtype(),
             'pm2_5_ug_m3': np.float32,
             'last_seen_epoch_sec': np.uint64,
             'lat': np.double,
             'lng': np.double,
-            'thingspeak_primary_id': np.int32,
-            'thingspeak_secondary_id': np.int32,
+            'thingspeak_primary_id': pd.Int32Dtype(),
+            'thingspeak_secondary_id': pd.Int32Dtype(),
             'age_mins': np.uint32
         }
         processed_df = processed_df.astype(column_dtypes)
+
+        # print(processed_df[processed_df['thingspeak_primary_id'].isna()])
+
         return processed_df
     
     @staticmethod
@@ -241,12 +247,10 @@ if __name__ == "__main__":
     from caqi.clients.purpleair_client import PurpleAirHttpClient, PurpleAirFileSystemClient
     # client = PurpleAirHttpClient()
     client = PurpleAirFileSystemClient()
-    raw_dao = AllSensorsRawDao(purpleair_client=client)
+    raw_dao = AllSensorsRawDao.of_archive(dt=datetime(2020, 11, 25,12), purpleair_client=client)
     # print(raw_dao.get_records()[0])
 
-    processed_dao = AllSensorsProcessedDao(all_sensors_raw=raw_dao)
-
-    raw_df = processed_dao.get_raw_df()
+    processed_dao = AllSensorsProcessedDao.of_raw_dao(all_sensors_raw=raw_dao)
     
 
 '''

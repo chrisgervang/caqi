@@ -87,7 +87,7 @@ class PurpleAirHttpClient(PurpleAirClient):
 
 @dataclass
 class PurpleAirFileSystemClient(PurpleAirClient):
-    file_system_client: FileSystemClient = field(default_factory=FileSystemClient)
+    file_system_client: FileSystemClient = field(default_factory=lambda: FileSystemClient(sub_path='staging'))
 
     def get_archived_records(self, dt: datetime) -> Dict[str, Any]:
         sub_dir = PurePath('all_sensors') / f'year={dt.year}' / f'month={dt.month}' / f'day={dt.day}' / f'hour={dt.hour}'
