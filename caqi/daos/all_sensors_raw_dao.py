@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict
 from caqi.clients.purpleair_client import PurpleAirClient
-from dataclasses import InitVar, dataclass, field
-import pandas as pd
+from dataclasses import dataclass
 
 @dataclass
 class AllSensorsRawDao:

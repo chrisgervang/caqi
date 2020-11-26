@@ -1,4 +1,4 @@
-from caqi.daos.all_sensors_raw import AllSensorsRawDao
+from caqi.daos.all_sensors_raw_dao import AllSensorsRawDao
 from caqi.clients.purpleair_client import PurpleAirHttpClient, PurpleAirFileSystemClient
 import prefect
 from prefect import task, Flow, Parameter

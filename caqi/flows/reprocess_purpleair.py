@@ -1,6 +1,6 @@
 from prefect.core.parameter import DateTimeParameter
 from prefect.utilities.tasks import task
-from caqi.tasks.all_sensors import create_hour_blob_client, create_purpleair_archive_client, extract_warehouse_purpleair, load_all_sensors_processed, transform_all_sensors_raw
+from caqi.tasks.all_sensors_tasks import create_hour_blob_client, create_purpleair_archive_client, extract_warehouse_purpleair, load_all_sensors_processed, transform_all_sensors_raw
 from datetime import timedelta
 import prefect
 from prefect import Flow, Parameter, unmapped

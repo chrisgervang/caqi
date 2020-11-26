@@ -2,8 +2,8 @@ from caqi.clients.purpleair_client import PurpleAirClient, PurpleAirFileSystemCl
 from datetime import datetime
 from prefect import task
 import prefect
-from caqi.daos.all_sensors_raw import AllSensorsRawDao
-from caqi.daos.all_sensors_processed import AllSensorsProcessedDao
+from caqi.daos.all_sensors_raw_dao import AllSensorsRawDao
+from caqi.daos.all_sensors_processed_dao import AllSensorsProcessedDao
 from caqi.clients.file_system_client import FileSystemClient
 
 logger = prefect.context.get("logger")

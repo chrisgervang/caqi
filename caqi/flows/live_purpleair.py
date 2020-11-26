@@ -1,4 +1,4 @@
-from caqi.tasks.all_sensors import create_hour_blob_client, extract_live_purpleair, load_all_sensors_processed, load_all_sensors_raw_json, transform_all_sensors_raw
+from caqi.tasks.all_sensors_tasks import create_hour_blob_client, extract_live_purpleair, load_all_sensors_processed, load_all_sensors_raw_json, transform_all_sensors_raw
 from datetime import datetime, timedelta
 import prefect
 from prefect.schedules import IntervalSchedule
