@@ -129,3 +129,4 @@ Brewfile.lock.json
 
 # Data Storage
 data_bucket/
+.DS_Store

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Union
 from pathlib import Path, PurePath
 import json
 
@@ -20,15 +20,15 @@ class FileSystemClient:
         else:
             return PurePath()
 
-    def load_str(self, source: str) -> str:
+    def load_str(self, source: Union[str, PurePath]) -> str:
         filepath = self.get_folder() / source
         with open(filepath) as f:
             return f.read()
 
-    def load_json(self, source: str) -> Dict[str, Any]:
+    def load_json(self, source: Union[str, PurePath]) -> Dict[str, Any]:
         return json.loads(self.load_str(source))
 
-    def load_csv(self, source: str) -> pd.DataFrame:
+    def load_csv(self, source: Union[str, PurePath]) -> pd.DataFrame:
         filepath = self.get_folder() / source
         return pd.read_csv(filepath)
 
