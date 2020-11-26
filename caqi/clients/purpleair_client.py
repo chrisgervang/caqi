@@ -1,10 +1,11 @@
 
+from caqi.transforms.all_sensors_transforms import convert_types_from_csv
 from datetime import datetime
 from pathlib import PurePath
+
+import pandas as pd
 from caqi.clients.file_system_client import FileSystemClient
 from caqi.clients.http_client import HttpClient
-import logging 
-from time import sleep
 from typing import Any, Dict
 from dataclasses import dataclass, field
 
@@ -65,6 +66,8 @@ class PurpleAirClient:
         raise NotImplementedError("Function not implemented!")
     def get_archived_records(self, dt: datetime) -> Dict[str, Any]:
         raise NotImplementedError("Function not implemented!")
+    def get_archived_processed(self, dt: datetime) -> pd.DataFrame:
+        raise NotImplementedError("Function not implemented!")
 
 @dataclass
 class PurpleAirHttpClient(PurpleAirClient):
@@ -93,6 +96,11 @@ class PurpleAirFileSystemClient(PurpleAirClient):
         sub_dir = PurePath('all_sensors') / f'year={dt.year}' / f'month={dt.month}' / f'day={dt.day}' / f'hour={dt.hour}'
         return self.file_system_client.load_json(sub_dir / 'raw.json')
 
+    def get_archived_processed(self, dt: datetime) -> pd.DataFrame:
+        sub_dir = PurePath('all_sensors') / f'year={dt.year}' / f'month={dt.month}' / f'day={dt.day}' / f'hour={dt.hour}'
+        df = self.file_system_client.load_csv(sub_dir / 'processed.csv')
+        return convert_types_from_csv(df)
+
     def get_live_matrix(self, show: int = None) -> Dict[str, Any]:
         if show is not None:
             return self.file_system_client.load_json('sample/data.json')
@@ -105,8 +113,6 @@ class PurpleAirFileSystemClient(PurpleAirClient):
         if show is not None:
             return self.file_system_client.load_json('sample/json.json')
         return self.file_system_client.load_json('sample/json.json')
-
-    
 
 if __name__ == "__main__":
     client = PurpleAirHttpClient()

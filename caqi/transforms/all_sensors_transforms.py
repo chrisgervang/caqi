@@ -83,9 +83,28 @@ def convert_types(processed_df: pd.DataFrame) -> pd.DataFrame:
         'age_mins': np.uint32
     }
     processed_df = processed_df.astype(column_dtypes)
-
     # print(processed_df[processed_df['thingspeak_primary_id'].isna()])
+    return processed_df
 
+def convert_types_from_csv(processed_df: pd.DataFrame) -> pd.DataFrame:
+    # 3a. Convert Types when deserializing from CSV. NOTE: using parquet preserves types better.
+
+    column_dtypes = {
+        'purpleair_id': np.int32,
+        'purpleair_parent_id': pd.Int32Dtype(),
+        'pm2_5_ug_m3': np.float32,
+        'last_seen_epoch_sec': np.uint64,
+        'lat': np.double,
+        'lng': np.double,
+        'thingspeak_primary_id': pd.Int32Dtype(),
+        'thingspeak_secondary_id': pd.Int32Dtype(),
+        'age_mins': np.uint32,
+        'h3_9': np.uint64,
+        'location_type': 'category',
+        'channel': 'category'
+    }
+    processed_df = processed_df.astype(column_dtypes)
+    # print(processed_df[processed_df['thingspeak_primary_id'].isna()])
     return processed_df
 
 def infer_rows(processed_df: pd.DataFrame) -> pd.DataFrame:
