@@ -1,11 +1,9 @@
-from caqi.clients.file_system_client import FileSystemClient
 from prefect.core.parameter import DateTimeParameter
 from prefect.utilities.tasks import task
-from caqi.tasks.all_sensors import create_hour_blob_client, extract_warehouse_purpleair, load_all_sensors_processed, transform_all_sensors_raw
+from caqi.tasks.all_sensors import create_hour_blob_client, create_purpleair_archive_client, extract_warehouse_purpleair, load_all_sensors_processed, transform_all_sensors_raw
 from datetime import timedelta
 import prefect
 from prefect import Flow, Parameter, unmapped
-from caqi.clients.purpleair_client import PurpleAirClient, PurpleAirFileSystemClient
 
 logger = prefect.context.get("logger")
 
@@ -17,11 +15,6 @@ def reprocessed_datetimes(start, interval_hour, end):
         datetimes.append(current_time)
         current_time += timedelta(hours=interval_hour)
     return datetimes
-
-@task
-def create_purpleair_archive_client(environment) -> PurpleAirClient:
-    fs_client = FileSystemClient(sub_path=environment)
-    return PurpleAirFileSystemClient(fs_client)
     
 def main():
 
