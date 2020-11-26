@@ -1,4 +1,6 @@
 
+from datetime import datetime
+from pathlib import PurePath
 from caqi.clients.file_system_client import FileSystemClient
 from caqi.clients.http_client import HttpClient
 import logging 
@@ -61,6 +63,8 @@ class PurpleAirClient:
         raise NotImplementedError("Function not implemented!")
     def get_live_records(self, show: int = None) -> Dict[str, Any]:
         raise NotImplementedError("Function not implemented!")
+    def get_archived_records(self, dt: datetime) -> Dict[str, Any]:
+        raise NotImplementedError("Function not implemented!")
 
 @dataclass
 class PurpleAirHttpClient(PurpleAirClient):
@@ -84,6 +88,10 @@ class PurpleAirHttpClient(PurpleAirClient):
 @dataclass
 class PurpleAirFileSystemClient(PurpleAirClient):
     file_system_client: FileSystemClient = field(default_factory=FileSystemClient)
+
+    def get_archived_records(self, dt: datetime) -> Dict[str, Any]:
+        sub_dir = PurePath('all_sensors') / f'year={dt.year}' / f'month={dt.month}' / f'day={dt.day}' / f'hour={dt.hour}'
+        return self.file_system_client.load_json(sub_dir / 'raw.json')
 
     def get_live_matrix(self, show: int = None) -> Dict[str, Any]:
         if show is not None:
