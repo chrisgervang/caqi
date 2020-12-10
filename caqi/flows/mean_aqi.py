@@ -1,38 +1,12 @@
+from caqi.tasks.mean_aqi_tasks import combine_mean_aqis, create_mean_aqi_blob_client, load_mean_aqi, transform_processed_mean
 from caqi.tasks.util_tasks import filter_failed
-from caqi.clients.file_system_client import FileSystemClient
-from caqi.daos.mean_aqi_dao import MeanAqiDao
-from caqi.daos.all_sensors_processed_dao import AllSensorsProcessedDao
 from caqi.tasks.datetime_tasks import datetime_range
-from prefect.core.parameter import DateTimeParameter
-from caqi.tasks.all_sensors_tasks import create_purpleair_archive_client
+from caqi.tasks.all_sensors_tasks import create_purpleair_archive_client, extract_warehouse_purpleair_processed
 import prefect
-from prefect import Flow, Parameter, unmapped, task
-from prefect.engine import signals
+from prefect.core.parameter import DateTimeParameter
+from prefect import Flow, Parameter, unmapped
 
 logger = prefect.context.get("logger")
-
-@task
-def extract_warehouse_purpleair_processed(dt, purpleair_client):
-    try:
-        return AllSensorsProcessedDao.of_archive_csv(dt=dt, purpleair_client=purpleair_client)
-    except IOError as e:
-        raise signals.FAIL(e)
-
-@task
-def transform_processed_mean(all_sensors_processed):
-    return MeanAqiDao.of_all_sensors_processed_dao(all_sensors_processed)
-
-@task
-def combine_mean_aqis(mean_aqis):
-    return MeanAqiDao.of_mean_aqis(mean_aqis=mean_aqis)
-
-@task
-def create_mean_aqi_blob_client(environment):
-    return FileSystemClient(sub_path=f'{environment}/mean_aqi')
-
-@task
-def load_mean_aqi(mean_aqi_dao, blob_client):
-    blob_client.save_csv(mean_aqi_dao.df, "mean_aqi")
 
 def main():
 

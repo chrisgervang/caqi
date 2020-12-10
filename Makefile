@@ -45,7 +45,7 @@ install_prefect:
 	$(ENV)/bin/prefect backend server
 
 .PHONTY: develop
-develop: env ## Install python package.
+develop: env ## Install python packages.
 	$(ENV)/bin/pip install --no-build-isolation -e .
 
 .PHONY: install
@@ -60,7 +60,7 @@ test: develop ## 🧪 Run tests.
 # -- Upgrade -- 
 
 .PHONY: upgrade_reqs
-upgrade_reqs: requirements/main.in requirements/dev.in ## Upgrade dependency versions.
+upgrade_reqs: requirements/main.in requirements/dev.in
 	$(ENV)/bin/pip install --upgrade pip-tools pip setuptools
 	$(PIP_COMPILE) requirements/main.txt requirements/main.in
 	$(PIP_COMPILE) requirements/dev.txt requirements/dev.in
