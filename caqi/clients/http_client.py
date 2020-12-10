@@ -47,9 +47,7 @@ class HttpClient:
 
             if attempt_num == self.retry_limit:
                 raise PrefectError(
-                    (
-                        "API requests to PurpleAir failed {} times. " + "Giving up."
-                    ).format(self.retry_limit)
+                    f"API requests to PurpleAir failed {self.retry_limit} times. Giving up."
                 )
 
             attempt_num += 1

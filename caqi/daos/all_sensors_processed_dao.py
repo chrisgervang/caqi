@@ -7,8 +7,8 @@ import pandas as pd
 
 @dataclass
 class AllSensorsProcessedDao:
-    df: pd.DataFrame = None
-    dt: datetime = None
+    df: pd.DataFrame
+    dt: datetime
     
     @classmethod
     def of_raw_dao(cls, all_sensors_raw: AllSensorsRawDao):
