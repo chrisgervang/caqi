@@ -4,14 +4,14 @@
 #
 #    pip-compile --no-emit-index-url --output-file=requirements/main.txt requirements/main.in
 #
-certifi==2020.11.8        # via requests
+certifi==2020.12.5        # via requests
 chardet==3.0.4            # via requests
 click==7.1.2              # via distributed, prefect
 cloudpickle==1.6.0        # via distributed, prefect
 croniter==0.3.36          # via prefect
 dask==2.30.0              # via distributed, prefect
 distributed==2.30.1       # via prefect
-docker==4.3.1             # via prefect
+docker==4.4.0             # via prefect
 h3==3.7.0                 # via -r requirements/main.in
 heapdict==1.0.1           # via zict
 idna==2.10                # via requests
@@ -22,9 +22,9 @@ msgpack==1.0.0            # via distributed, prefect
 mypy-extensions==0.4.3    # via prefect
 natsort==7.1.0            # via croniter
 numpy==1.19.4             # via -r requirements/main.in, pandas
-pandas==1.1.4             # via -r requirements/main.in
+pandas==1.1.5             # via -r requirements/main.in
 pendulum==2.1.2           # via prefect
-prefect==0.13.16          # via -r requirements/main.in
+prefect==0.13.19          # via -r requirements/main.in
 psutil==5.7.3             # via distributed
 python-box==5.2.0         # via prefect
 python-dateutil==2.8.1    # via croniter, pandas, pendulum, prefect
