@@ -3,11 +3,11 @@ from prefect import Client
 
 client = Client()
 client.create_flow_run(
-    flow_id="b0e7cf52-8970-4662-b433-b6acd0395b49", 
+    flow_id="a4bab79c-055c-49b8-b7a7-cf66fa8bd6d2", 
     parameters={
         'start': datetime(2020, 11, 23, 7).isoformat(), 
-        'end_inclusive': datetime(2020, 11, 26, 7).isoformat(),
-        # 'environment': 'prod',
-        'environment': 'staging'
+        'end_inclusive': datetime(2020, 12, 8, 22).isoformat(),
+        'environment': 'prod',
+        # 'environment': 'staging'
     }
 )
